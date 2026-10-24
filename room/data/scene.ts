@@ -256,6 +256,9 @@ export const SCENE: readonly Prop[] = [
   { id: "hackathons:cart-2", model: "cartridge2", zone: "hackathons", position: { x: 1.05, y: 0, z: 1.9 }, rotationY: -18, anchorFor: "hackathon:1" },
   { id: "hackathons:cart-3", model: "cartridge3", zone: "hackathons", position: { x: 0.7, y: 0, z: 1.7 }, rotationY: 30, anchorFor: "hackathon:2" },
   { id: "hackathons:cart-4", model: "cartridge4", zone: "hackathons", position: { x: 1.45, y: 0, z: 2.15 }, rotationY: -6, anchorFor: "hackathon:3" },
+  // Five entries and four cartridge models, so the fifth reuses the first's -
+  // from across the pile, where the repeat does not read as one.
+  { id: "hackathons:cart-5", model: "cartridge1", zone: "hackathons", position: { x: 1.7, y: 0, z: 1.85 }, rotationY: 24, anchorFor: "hackathon:4" },
   { id: "hackathons:plant", model: "plant2", zone: "hackathons", position: { x: 2.3, y: 0, z: -0.35 }, rotationY: 0 },
 
   // ------------------------------------------------------------- CONTACT ME

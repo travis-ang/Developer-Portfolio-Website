@@ -21,7 +21,7 @@ export const PROJECTS: PageData[] = [
     links: [
       {
         label: "GitHub",
-        href: "https://github.com/BruhClient/Git-Dummy",
+        href: "https://github.com/travis-ang/Git-Dummy",
         icon: "github",
       },
       {
@@ -31,7 +31,7 @@ export const PROJECTS: PageData[] = [
       },
       {
         label: "Download",
-        href: "https://github.com/BruhClient/Git-Dummy/releases/latest",
+        href: "https://github.com/travis-ang/Git-Dummy/releases/latest",
         icon: "download",
       },
     ],
@@ -74,7 +74,7 @@ export const PROJECTS: PageData[] = [
     links: [
       {
         label: "GitHub",
-        href: "https://github.com/BruhClient/ISR-Stores-Bot",
+        href: "https://github.com/travis-ang/ISR-Stores-Bot",
         icon: "github",
       },
     ],

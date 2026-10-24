@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef } from "react";
 import {
   resolveBinding,
   sectionLabel,
@@ -10,6 +11,7 @@ import {
 } from "../data/bindings";
 import { otherSections } from "../data/navigation";
 import { useRoom } from "../engine/roomState";
+import { Award, awardLabel } from "./Award";
 import { GroupCue } from "./Cue";
 import { AboutBody } from "./bodies/AboutBody";
 import { CertificateBody } from "./bodies/CertificateBody";
@@ -28,8 +30,11 @@ import { ToolkitBody } from "./bodies/ToolkitBody";
   between "a panel opened" and "I went to another page", and it is the thing the
   whole design is built around.
 
-  Desktop: the right 45%. Mobile: a 60%-height bottom sheet, which is why
-  focus.ts frames the subject in the top half there instead of the left.
+  Desktop: the right 45%. Mobile: an 80%-height bottom sheet, which is why
+  focus.ts frames the subject in the strip above it there instead of the left.
+  The side panel never goes under 420px, the point past which the reader stops
+  being a column of text and becomes a column of three-word lines. The sheet
+  needs no such floor: at four fifths of even a short phone it is roomy.
 
   z-30 - the overlay rung - rather than the dock's 20. On a desktop the two
   never meet, the reader being on the right and the dock in the bottom-left
@@ -52,6 +57,22 @@ export function Panel() {
   const parent = state.trail[state.trail.length - 1];
   const parentTitle = parent ? titleForBinding(parent) : undefined;
 
+  /*
+    Every page starts at its top.
+
+    The body is one scroll container for whatever the reader is showing, so it
+    kept its offset across a change of page: read halfway down a hackathon,
+    pick the next one, and it opened halfway down too, on a paragraph with no
+    title above it. Reset whenever the page changes, and whenever the panel
+    opens, since reopening the same page is a fresh visit as well. A layout
+    effect so it happens before paint - otherwise the new page flashes at the
+    old offset first.
+  */
+  const body = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (open) body.current?.scrollTo({ top: 0 });
+  }, [state.item, open]);
+
   return (
     <aside
       aria-hidden={!open}
@@ -64,8 +85,8 @@ export function Panel() {
         */
         "reader-panel fixed z-30 flex flex-col border-amber-200/15 bg-[#0d0f18]/95 backdrop-blur-sm",
         "transition-transform duration-500 ease-out",
-        "inset-x-0 bottom-0 h-[60svh] rounded-t-2xl border-t",
-        "md:inset-y-0 md:left-auto md:right-0 md:h-auto md:w-[45vw] md:rounded-none md:border-l md:border-t-0",
+        "inset-x-0 bottom-0 h-[80svh] rounded-t-2xl border-t",
+        "md:inset-y-0 md:left-auto md:right-0 md:h-auto md:w-[45vw] md:min-w-[420px] md:rounded-none md:border-l md:border-t-0",
         open
           ? "translate-y-0 md:translate-x-0"
           : "translate-y-full md:translate-y-0 md:translate-x-full",
@@ -118,7 +139,7 @@ export function Panel() {
             </button>
           </div>
 
-          <div className="reader min-h-0 flex-1 overflow-y-auto">
+          <div ref={body} className="reader min-h-0 flex-1 overflow-y-auto">
             <Body content={content} onPick={follow} />
 
             {siblings.length > 0 && (
@@ -131,14 +152,15 @@ export function Panel() {
                 <GroupCue>Click any title to read it →</GroupCue>
                 <ul className="space-y-1">
                   {siblings.map((sibling) => (
-                    <li key={sibling.id}>
+                    <li key={sibling.id} className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <button
                         onClick={() => follow(sibling.id)}
-                        aria-label={`${sibling.title} — read it`}
+                        aria-label={`${sibling.title}${awardLabel(sibling.award)} — read it`}
                         className="text-sm text-amber-100/70 underline underline-offset-4 hover:text-amber-50"
                       >
                         {sibling.title}
                       </button>
+                      {sibling.award && <Award award={sibling.award} />}
                     </li>
                   ))}
                 </ul>

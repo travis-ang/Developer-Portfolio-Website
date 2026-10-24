@@ -845,6 +845,7 @@
 */
 .reader-panel {
   --reader-pad: 1.5rem;
+  container: reader / inline-size;
 }
 
 @media (min-width: 768px) {
@@ -913,19 +914,68 @@
 }
 
 /*
+  Gallery or interludes - the same pictures, laid out for the reader's width.
+
+  Two-up needs about 600px: two columns of 290, which is as narrow as a
+  screenshot can go and still be read. A reader that wide gets the packed
+  gallery. Anything narrower - every phone, and a laptop window under ~1330px -
+  would get the gallery as ONE column, every picture in a stack and then every
+  paragraph in another, so it gets the pictures set between the text instead.
+
+  Keyed on the panel's own width, not the screen's, since the panel is a share
+  of the screen with a floor under it and no media query can see that.
+*/
+.reader-wide {
+  display: none;
+}
+
+@container reader (width >= 600px) {
+  .reader-wide {
+    display: block;
+  }
+  .reader-narrow {
+    display: none;
+  }
+}
+
+/*
   A gallery of shots, packed into columns.
 
-  A column WIDTH, not a count: the reader is 45vw, so it is 648px on a laptop
-  and 460px in a small window, and 290 gives two columns at the first and one
-  at the second with no breakpoint saying so. The phone sheet gets one, which
-  is a plain stack - correctly, since two 190px columns would be unreadable.
+  A count rather than a column width now, because it only shows once two fit;
+  three on a panel wide enough for three, which takes a very large monitor.
 
   Multi-column balances the columns by height on its own, which is the whole
   trick; all this has to do is stop a picture being sliced down the middle.
 */
 .reader-gallery {
-  columns: 290px;
+  columns: 2;
   column-gap: 6px;
+  margin-block: 1.5rem;
+}
+
+@container reader (width >= 900px) {
+  .reader-gallery {
+    columns: 3;
+  }
+}
+
+/* One picture is not a gallery. Two columns would leave it the left half of
+   the panel beside an empty right one, which reads as a picture missing. */
+.reader-gallery.reader-gallery--single {
+  columns: 1;
+}
+
+/*
+  Pictures between paragraphs. The margin is the article's own 1.5rem rhythm,
+  stated here because inside an About section the paragraphs sit 0.5rem apart
+  and a picture that close to the words reads as a pasted-in thumbnail.
+*/
+.reader-interlude {
+  margin-block: 1.5rem;
+}
+
+.reader-interlude > * + * {
+  margin-top: 6px;
 }
 
 .reader-gallery .reader-shot {
@@ -950,22 +1000,33 @@
 }
 
 /*
-  The About portrait.
-
-  It is a 3:4 standing photo, and at full bleed that is 864px tall in a 900px
-  window: you open About and get a wall of face with the writing pushed off the
-  bottom. Cropped to 3:2 it becomes a header image - still full width, still
-  the same photo, but it introduces the page instead of being the page.
-
-  The crop is anchored at 34% rather than the centre because the subject's head
-  sits just under the top third; a centre crop cut it off at the eyes.
+  A photo still to come - see Placeholder in bodies/Shot.tsx. Dashed so it can
+  never be mistaken for a picture that failed to load, which is solid-edged.
 */
-.reader-portrait {
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  object-position: center 34%;
-  height: auto;
+.reader-shot.reader-shot--placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  aspect-ratio: 4 / 3;
+  padding: 1rem;
+  /* Top and bottom only: at full bleed the sides are the panel's edges, and
+     a bare `border-style` would turn their unset widths into 3px rules. */
+  border-top-style: dashed;
+  border-bottom-style: dashed;
+  border-color: rgba(255, 217, 160, 0.28);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+  color: rgb(254 243 199 / 0.6);
 }
+
+/* Tiled in the gallery it is boxed on all four sides, like its neighbours. */
+.reader-gallery .reader-shot--placeholder {
+  border-style: dashed;
+}
+
 
 /* ─────────────────────────────────────────────
    Touch.

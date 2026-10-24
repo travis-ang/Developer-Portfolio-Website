@@ -37,9 +37,12 @@ describe("framingFor", () => {
     expect(screenAnchor.x + 0.275).toBeLessThanOrEqual(0.55);
   });
 
-  test("item framing on mobile moves the object to the top half instead", () => {
-    // The panel is a 60% bottom sheet there, so shifting left would do nothing.
-    expect(framingFor("item", bounds, phone, fov).screenAnchor).toEqual({ x: 0.5, y: 0.25 });
+  test("item framing on mobile moves the object up above the sheet instead", () => {
+    // The panel is an 80% bottom sheet there, so shifting left would do nothing.
+    // The 20% left showing puts the subject five-eighths down it: 0.125.
+    const { screenAnchor } = framingFor("item", bounds, phone, fov);
+    expect(screenAnchor.x).toBe(0.5);
+    expect(screenAnchor.y).toBeCloseTo(0.125, 9);
   });
 
   test("pulls back further for wider bounds", () => {
@@ -114,10 +117,24 @@ describe("home framing on a portrait screen", () => {
     panel, which is the case that tells the two apart.
   */
   test("an open item follows the panel, not the frame's shape", () => {
-    expect(framingFor("item", bounds, phone, fov).screenAnchor).toEqual({ x: 0.5, y: 0.25 });
+    expect(framingFor("item", bounds, phone, fov).screenAnchor.y).toBeCloseTo(0.125, 9);
+    // At 768 the panel's 420px floor is wider than 45%, so the room is the left
+    // 348px and the subject centres in that: 174 / 768.
     expect(framingFor("item", bounds, tabletPortrait, fov).screenAnchor).toEqual({
-      x: 0.275,
+      x: 0.2265625,
       y: 0.5,
     });
+  });
+});
+
+/*
+  The side panel stops shrinking at 420px, so in a small window it takes more
+  than its 45%. The subject has to move with it or it slides under the edge.
+*/
+describe("an open item in a small window", () => {
+  test("moves left with the side panel", () => {
+    // 900 wide: the panel holds at 420px, leaving the left 480px.
+    const { screenAnchor } = framingFor("item", bounds, { width: 900, height: 700 }, fov);
+    expect(screenAnchor.x * 900).toBeCloseTo(240, 6);
   });
 });

@@ -131,7 +131,8 @@ function TextProjects({
           <h3 className="font-medium">{item.title}</h3>
           <p className="text-sm text-neutral-500">
             {item.date}
-            {item.award ? ` · ${item.award}` : ""} · {item.techs.join(", ")}
+            {item.award ? ` · ${item.award}${item.awardDetail ? ` (${item.awardDetail})` : ""}` : ""} ·{" "}
+            {item.techs.join(", ")}
           </p>
           <p className="text-sm leading-relaxed">{item.overview}</p>
           <ul className="list-disc space-y-1 pl-5 text-sm">

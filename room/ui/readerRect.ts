@@ -21,8 +21,11 @@ export interface Rect {
 /** `md:w-[45vw]` - the reader takes the right 45% of a desktop window. */
 const READER_WIDTH = 0.45;
 
-/** `h-[60svh]` - on a phone it is a bottom sheet instead. */
-const SHEET_HEIGHT = 0.6;
+/** `md:min-w-[420px]` - but never less than this in a small one. */
+const READER_MIN_WIDTH = 420;
+
+/** `h-[80svh]` - on a phone it is a bottom sheet instead. */
+const SHEET_HEIGHT = 0.8;
 
 export function readerRect(viewport: Viewport): Rect {
   if (isMobile(viewport)) {
@@ -33,8 +36,9 @@ export function readerRect(viewport: Viewport): Rect {
       bottom: viewport.height,
     };
   }
+  const width = Math.max(viewport.width * READER_WIDTH, READER_MIN_WIDTH);
   return {
-    left: viewport.width - viewport.width * READER_WIDTH,
+    left: viewport.width - width,
     top: 0,
     right: viewport.width,
     bottom: viewport.height,

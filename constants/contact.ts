@@ -26,5 +26,5 @@ export const CONTACT_CHANNELS: readonly ContactChannel[] = [
     value: "travis-ang",
     href: "https://www.linkedin.com/in/travis-ang/",
   },
-  { label: "GitHub", value: "BruhClient", href: "https://github.com/BruhClient" },
+  { label: "GitHub", value: "travis-ang", href: "https://github.com/travis-ang" },
 ] as const;

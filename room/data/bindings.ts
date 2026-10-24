@@ -142,7 +142,7 @@ export function titleOf(content: PanelContent): string {
  * hackathons without going back to the room. This is where the spec's "grouped
  * into sections" requirement is honoured.
  */
-export function siblingsOf(id: string): { id: string; title: string }[] {
+export function siblingsOf(id: string): { id: string; title: string; award?: string }[] {
   const content = BINDINGS[id];
   if (!content) return [];
   return Object.entries(BINDINGS)
@@ -151,5 +151,9 @@ export function siblingsOf(id: string): { id: string; title: string }[] {
       if (other.zone !== content.zone) return false;
       return other.kind === content.kind;
     })
-    .map(([otherId, other]) => ({ id: otherId, title: titleOf(other) }));
+    .map(([otherId, other]) => ({
+      id: otherId,
+      title: titleOf(other),
+      award: other.kind === "project" ? other.data.award : undefined,
+    }));
 }

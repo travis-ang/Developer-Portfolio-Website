@@ -161,7 +161,7 @@ on the top edge, magnetic connector strip along the hinge, and a soft diagonal
 glass reflection over the panel.
 
 **Screen** (`lib/github-screen.ts`)
-- The **GitHub profile** (`github.com/BruhClient`, dark theme) inside a browser
+- The **GitHub profile** (`github.com/travis-ang`, dark theme) inside a browser
   window, drawn to a 1152×768 (3:2) canvas and used as a `CanvasTexture`.
   Canvas beats meshes here: text stays crisp at any camera distance and costs
   one texture upload per repaint instead of hundreds of draw calls.

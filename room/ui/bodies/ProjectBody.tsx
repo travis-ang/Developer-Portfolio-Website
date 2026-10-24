@@ -1,8 +1,23 @@
+import { Fragment } from "react";
 import type { PageData } from "@/constants/pages/types";
-import { Gallery } from "./Shot";
+import { Gallery, Interlude } from "./Shot";
+import { weave } from "./weave";
+import { Award } from "../Award";
 import { Cue } from "../Cue";
 
 export function ProjectBody({ data }: { data: PageData }) {
+  /*
+    The gaps a narrow reader sets pictures in: after the intro, after each
+    list, after the reflection. Lists with nothing in them are left out first,
+    so an entry without an Impact does not get two runs of pictures meeting
+    where it would have been.
+  */
+  const lists = [
+    { title: "Impact", items: data.impacts },
+    { title: "What I did", items: data.whatIDid },
+  ].filter((list) => list.items.length > 0);
+  const interludes = weave(data.images, lists.length + 2);
+
   return (
     <article className="space-y-6">
       {data.cardKicker && (
@@ -10,10 +25,8 @@ export function ProjectBody({ data }: { data: PageData }) {
       )}
       <header className="space-y-2">
         <h2 className="text-2xl font-semibold text-amber-50">{data.title}</h2>
-        <p className="text-sm text-amber-100/50">
-          {data.date}
-          {data.award ? ` · ${data.award}` : ""}
-        </p>
+        <p className="text-sm text-amber-100/50">{data.date}</p>
+        {data.award && <Award award={data.award} detail={data.awardDetail} />}
       </header>
 
       <ul className="flex flex-wrap gap-1.5">
@@ -49,15 +62,21 @@ export function ProjectBody({ data }: { data: PageData }) {
       )}
 
       {/* Runs to the panel's edges; the prose around it keeps its gutter. */}
-      <Gallery images={data.images} />
+      <Gallery pictures={data.images} />
+      <Interlude pictures={interludes[0]} />
 
-      <Section title="Impact" items={data.impacts} />
-      <Section title="What I did" items={data.whatIDid} />
+      {lists.map((list, i) => (
+        <Fragment key={list.title}>
+          <Section title={list.title} items={list.items} />
+          <Interlude pictures={interludes[i + 1]} />
+        </Fragment>
+      ))}
 
       <section className="space-y-2">
         <h3 className="text-xs uppercase tracking-widest text-amber-200/70">Reflection</h3>
         <p className="text-sm leading-relaxed text-amber-50/75">{data.reflection}</p>
       </section>
+      <Interlude pictures={interludes[lists.length + 1]} />
     </article>
   );
 }

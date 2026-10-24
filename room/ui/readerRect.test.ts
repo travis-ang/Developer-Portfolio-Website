@@ -20,7 +20,7 @@ describe("where the reader sits", () => {
     const rect = readerRect(phone);
     expect(rect.left).toBe(0);
     expect(rect.right).toBe(390);
-    expect(rect.top).toBeCloseTo(337.6, 1);
+    expect(rect.top).toBeCloseTo(168.8, 6);
   });
 
   /*
@@ -29,8 +29,23 @@ describe("where the reader sits", () => {
     documents for its item anchor.
   */
   it("switches to the side panel at the md breakpoint, not past it", () => {
-    expect(readerRect({ width: 768, height: 1024 }).left).toBeCloseTo(422.4, 1);
+    expect(readerRect({ width: 768, height: 1024 }).left).toBe(348);
     expect(readerRect({ width: 767, height: 1024 }).left).toBe(0);
+  });
+});
+
+/*
+  45% of a small window is a reader too cramped to read in, so below 420px the
+  side panel stops shrinking and the room gives up the space. The sheet has no
+  such floor; four fifths of a short phone is still plenty.
+*/
+describe("how small the reader is allowed to get", () => {
+  it("holds the side panel at 420px once 45% would be narrower", () => {
+    expect(readerRect({ width: 900, height: 700 }).left).toBe(480);
+  });
+
+  it("keeps the sheet at four fifths on a short phone", () => {
+    expect(readerRect({ width: 375, height: 480 }).top).toBe(96);
   });
 });
 
@@ -58,7 +73,7 @@ describe("whether a sign has landed on the reader", () => {
   });
 
   it("uses the sheet's top edge on a phone, not its left", () => {
-    expect(overlapsReader(signAt(120, 200), phone)).toBe(false);
+    expect(overlapsReader(signAt(120, 100), phone)).toBe(false);
     expect(overlapsReader(signAt(120, 500), phone)).toBe(true);
   });
 });
@@ -77,6 +92,10 @@ describe("kept in step with the panel itself", () => {
   });
 
   it("matches the sheet height Panel.tsx asks for", () => {
-    expect(panel).toContain("h-[60svh]");
+    expect(panel).toContain("h-[80svh]");
+  });
+
+  it("matches the floor Panel.tsx asks for", () => {
+    expect(panel).toContain("md:min-w-[420px]");
   });
 });

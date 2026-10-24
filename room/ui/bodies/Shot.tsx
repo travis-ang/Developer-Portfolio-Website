@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { sizeOf } from "@/constants/imageSizes";
-import type { PageImage } from "@/constants/pages/types";
+import { isPlaceholder, type PageImage, type Picture } from "@/constants/pages/types";
 
 /*
   Pictures in the reader.
@@ -81,29 +81,73 @@ export function Shot({
   full-width screenshots turns the interesting part of a panel - what was
   built - into a scroll. Packed two-up you see the set at once.
 
-  Column WIDTH rather than a column count, so the number of columns follows
-  the space instead of a breakpoint. The reader is 45vw, which is 648px on a
-  laptop and 460px on a small window, and 290 gives two columns at the first
-  and one at the second without a media query saying so. The phone sheet gets
-  one column, which is the stack again, correctly.
+  Only on a reader wide enough to pack them two-up, though. Below that the
+  masonry is one column - every picture in a stack, then every paragraph in
+  another - so the body sets the same pictures between its text instead, as
+  Interludes, and globals.css shows whichever of the two fits the reader.
 */
-export function Gallery({ images }: { images: readonly PageImage[] }) {
-  if (images.length === 0) return null;
+export function Gallery({ pictures }: { pictures: readonly Picture[] }) {
+  if (pictures.length === 0) return null;
 
   return (
-    <div className="reader-bleed reader-gallery">
-      {images.map((image) => {
-        const { width, height } = sizeOf(image.src);
+    <div
+      className={[
+        "reader-bleed reader-gallery reader-wide",
+        pictures.length === 1 && "reader-gallery--single",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {pictures.map((picture) => {
+        if (isPlaceholder(picture)) {
+          return <Placeholder key={picture.placeholder} label={picture.placeholder} />;
+        }
+        const { width, height } = sizeOf(picture.src);
         const wide = width / height >= PANORAMIC;
         return (
           <Shot
-            key={image.src}
-            image={image}
+            key={picture.src}
+            image={picture}
             className={wide ? "reader-shot--wide" : undefined}
             sizes={wide ? SIZES_FULL : SIZES_COLUMN}
           />
         );
       })}
+    </div>
+  );
+}
+
+/*
+  The pictures for one gap in the text, on a reader too narrow for Gallery.
+  Full width and one under another, since this is the narrow case by
+  definition; hidden on a wide reader, where Gallery shows the same pictures.
+*/
+export function Interlude({ pictures }: { pictures: readonly Picture[] }) {
+  if (pictures.length === 0) return null;
+
+  return (
+    <div className="reader-bleed reader-interlude reader-narrow">
+      {pictures.map((picture) =>
+        isPlaceholder(picture) ? (
+          <Placeholder key={picture.placeholder} label={picture.placeholder} />
+        ) : (
+          <Shot key={picture.src} image={picture} />
+        ),
+      )}
+    </div>
+  );
+}
+
+/*
+  A photo still to come. A dashed box roughly the shape of a photo, captioned
+  with what belongs in it, so the layout around it is already the real one and
+  dropping the photo in moves nothing much.
+*/
+function Placeholder({ label }: { label: string }) {
+  return (
+    <div role="img" aria-label={`Photo to come: ${label}`} className="reader-shot reader-shot--placeholder">
+      <span className="uppercase tracking-widest text-amber-200/45">Photo to come</span>
+      <span>{label}</span>
     </div>
   );
 }

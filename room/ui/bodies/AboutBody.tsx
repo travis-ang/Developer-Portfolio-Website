@@ -1,6 +1,21 @@
+import { FileDown, Github, Linkedin, Mail, type LucideIcon } from "lucide-react";
+import Image from "next/image";
+import { Fragment } from "react";
+import { CONTACT_CHANNELS } from "@/constants/contact";
+import { sizeOf } from "@/constants/imageSizes";
 import type { AboutData } from "@/constants/pages/about";
-import { Shot } from "./Shot";
+import { RESUME_HREF } from "@/room/data/bindings";
+import { Gallery, Interlude } from "./Shot";
+import { weave } from "./weave";
 import { Cue } from "../Cue";
+import { Typewriter } from "../Typewriter";
+
+/** An icon per channel in CONTACT_CHANNELS, keyed by its label. */
+const CHANNEL_ICONS: Record<string, LucideIcon> = {
+  Email: Mail,
+  LinkedIn: Linkedin,
+  GitHub: Github,
+};
 
 export function AboutBody({
   data,
@@ -16,24 +31,84 @@ export function AboutBody({
 }) {
   return (
     <article className="space-y-6">
-      {/* A header image rather than the 160px thumbnail this was: full width,
-          cropped to a landscape band so a 3:4 standing photo introduces the
-          section instead of filling it. */}
-      <div className="reader-bleed">
-        <Shot image={data.images.portrait} className="reader-portrait" />
-      </div>
+      {/*
+        An introduction rather than a banner: who, then a line that types out
+        what, with the photo as a card beside it. The full-width portrait this
+        replaced put a picture ahead of a single word about the person in it.
+      */}
+      <header className="flex items-center gap-4">
+        <div className="w-28 shrink-0 overflow-hidden rounded-xl border border-amber-200/25 bg-amber-200/5 shadow-lg shadow-black/40">
+          <Image
+            src={data.portrait.src}
+            alt={data.portrait.alt}
+            {...sizeOf(data.portrait.src)}
+            sizes="112px"
+            className="block h-auto w-full"
+          />
+        </div>
+        <div className="min-w-0 space-y-1">
+          <h2 className="text-2xl font-semibold text-amber-50">{data.greeting}</h2>
+          <p className="text-base leading-relaxed text-amber-100/80">
+            <Typewriter prefix="I'm " phrases={data.roles} />
+          </p>
+        </div>
+      </header>
       <p className="text-base leading-relaxed text-amber-50">{data.lead}</p>
 
-      {data.sections.map((section) => (
-        <section key={section.label} className="space-y-2">
-          <h3 className="text-xs uppercase tracking-widest text-amber-200/70">{section.label}</h3>
-          {section.paragraphs.map((paragraph) => (
-            <p key={paragraph} className="text-sm leading-relaxed text-amber-50/80">
-              {paragraph}
-            </p>
-          ))}
-        </section>
-      ))}
+      {/*
+        The resume and every way to reach me, before the long read rather than
+        after it. Someone who opened About to find these should not have to
+        scroll past three sections first.
+      */}
+      <div className="flex flex-wrap items-center gap-3">
+        <a
+          href={RESUME_HREF}
+          download
+          aria-label="Download resume — saves a PDF"
+          className="group inline-flex items-center gap-2.5 rounded-lg border border-amber-300/60 bg-amber-300/15 px-5 py-3 text-base font-semibold text-amber-100 hover:bg-amber-300/25"
+        >
+          <FileDown aria-hidden className="size-5" />
+          Download resume
+          <Cue kind="download">Saves a PDF</Cue>
+        </a>
+        <ul className="flex items-center gap-2">
+          {CONTACT_CHANNELS.map((channel) => {
+            const Icon = CHANNEL_ICONS[channel.label] ?? Mail;
+            const external = !channel.href.startsWith("mailto:");
+            return (
+              <li key={channel.label}>
+                <a
+                  href={channel.href}
+                  {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
+                  aria-label={external ? `${channel.label} — opens in a new tab` : `Email ${channel.value}`}
+                  title={channel.label}
+                  className="flex size-12 items-center justify-center rounded-lg border border-amber-200/30 text-amber-100 hover:bg-amber-200/10"
+                >
+                  <Icon aria-hidden className="size-5" />
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      {data.sections.map((section) => {
+        const photos = section.photos ?? [];
+        // One gap after each paragraph, so a picture sits by what it shows.
+        const interludes = weave(photos, section.paragraphs.length);
+        return (
+          <section key={section.label} className="space-y-2">
+            <h3 className="text-xs uppercase tracking-widest text-amber-200/70">{section.label}</h3>
+            {section.paragraphs.map((paragraph, i) => (
+              <Fragment key={paragraph}>
+                <p className="text-sm leading-relaxed text-amber-50/80">{paragraph}</p>
+                <Interlude pictures={interludes[i]} />
+              </Fragment>
+            ))}
+            <Gallery pictures={photos} />
+          </section>
+        );
+      })}
 
       <blockquote className="border-l-2 border-amber-200/40 pl-4">
         <p className="text-sm italic text-amber-50/90">{data.pullQuote.text}</p>

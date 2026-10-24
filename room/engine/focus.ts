@@ -5,6 +5,8 @@
   three.js objects; everything decidable without a renderer is decided here so it
   can be tested in a node environment, matching the convention in vitest.config.ts.
 */
+import { readerRect } from "../ui/readerRect";
+
 /*
   Deliberately the same shape as RoomState's own level, and deliberately not
   imported from it: this module is pure maths and stays free of the store.
@@ -87,6 +89,16 @@ const PADDING_HOME_PORTRAIT = 1.7;
 */
 const ANCHOR_HOME_PORTRAIT_X = 0.42;
 
+/*
+  How far down the strip of room above the bottom sheet an open item sits.
+
+  It was tuned as a flat 0.25 of the screen when the sheet was 60% tall:
+  five-eighths of the way down the 40% left showing. The sheet is 80% now, and
+  a flat 0.25 would put the subject's centre under its top edge. Stated as a
+  share of the strip, it keeps the composition and moves with the sheet.
+*/
+const ANCHOR_ABOVE_SHEET = 0.625;
+
 export function framingFor(
   level: Level,
   bounds: Bounds,
@@ -117,10 +129,12 @@ export function framingFor(
 
   let screenAnchor = { x: 0.5, y: 0.5 };
   if (level === "item") {
-    // Only the item level has a panel to make room for.
+    // Only the item level has a panel to make room for, and it is the panel's
+    // real edge that matters - its floor takes more than 45% in a small window.
+    const reader = readerRect(viewport);
     screenAnchor = isMobile(viewport)
-      ? { x: 0.5, y: 0.25 } // centre of the top half, above the bottom sheet
-      : { x: 0.275, y: 0.5 }; // centre of the left 55%, beside the panel
+      ? { x: 0.5, y: (reader.top / viewport.height) * ANCHOR_ABOVE_SHEET } // above the sheet
+      : { x: reader.left / viewport.width / 2, y: 0.5 }; // centre of what is left of the panel
   } else if (fit < 1) {
     screenAnchor = { x: ANCHOR_HOME_PORTRAIT_X, y: 0.5 };
   }

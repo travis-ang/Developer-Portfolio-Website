@@ -2,9 +2,11 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { IMAGE_SIZES, sizeOf } from "./imageSizes";
+import { SITE_IMAGES } from "./media";
 import { ABOUT } from "./pages/about";
 import { HACKATHONS } from "./pages/hackathons";
 import { PROJECTS } from "./pages/projects";
+import { isPlaceholder } from "./pages/types";
 
 /*
   IMAGE_SIZES is measured data about files that live outside the type system,
@@ -74,8 +76,8 @@ describe("image sizes", () => {
     const rendered = [
       ...PROJECTS.flatMap((p) => p.images.map((i) => i.src)),
       ...HACKATHONS.flatMap((p) => p.images.map((i) => i.src)),
-      ABOUT.images.portrait.src,
-      ABOUT.images.presenting.src,
+      SITE_IMAGES.portrait.src,
+      ...ABOUT.sections.flatMap((s) => (s.photos ?? []).flatMap((p) => (isPlaceholder(p) ? [] : [p.src]))),
     ];
 
     const wrong = rendered.flatMap((src) => {
