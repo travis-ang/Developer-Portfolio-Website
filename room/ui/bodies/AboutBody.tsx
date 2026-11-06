@@ -6,6 +6,7 @@ import { sizeOf } from "@/constants/imageSizes";
 import type { AboutData } from "@/constants/pages/about";
 import { RESUME_HREF } from "@/room/data/bindings";
 import { Gallery, Interlude } from "./Shot";
+import { Zoom } from "../Lightbox";
 import { weave } from "./weave";
 import { Cue } from "../Cue";
 import { Typewriter } from "../Typewriter";
@@ -38,13 +39,17 @@ export function AboutBody({
       */}
       <header className="flex items-center gap-4">
         <div className="w-28 shrink-0 overflow-hidden rounded-xl border border-amber-200/25 bg-amber-200/5 shadow-lg shadow-black/40">
-          <Image
-            src={data.portrait.src}
-            alt={data.portrait.alt}
-            {...sizeOf(data.portrait.src)}
-            sizes="112px"
-            className="block h-auto w-full"
-          />
+          {/* 112px of a 960x1280 photo, so there is a face in there worth
+              opening - the same bargain every other picture here makes. */}
+          <Zoom image={data.portrait} className="reader-zoom--plain">
+            <Image
+              src={data.portrait.src}
+              alt={data.portrait.alt}
+              {...sizeOf(data.portrait.src)}
+              sizes="112px"
+              className="block h-auto w-full"
+            />
+          </Zoom>
         </div>
         <div className="min-w-0 space-y-1">
           <h2 className="text-2xl font-semibold text-amber-50">{data.greeting}</h2>

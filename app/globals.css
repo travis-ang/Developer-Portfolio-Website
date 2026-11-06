@@ -717,6 +717,140 @@
 }
 
 /* ─────────────────────────────────────────────
+   A picture, full size.
+
+   The reader shows a photo at 45% of a window and a gallery column at a
+   quarter of that, which is enough to see that there is a chart and not
+   enough to read one. Clicking a picture opens it here instead - see
+   room/ui/Lightbox.tsx for what does the opening.
+
+   The same <dialog> treatment as the welcome mat, and for the same reasons:
+   undo the UA's centred white card, fill the viewport, and let the top layer
+   carry it over a canvas whose signs hold z-indexes in the millions.
+   ───────────────────────────────────────────── */
+.room-lightbox {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Room for the close button above the picture and the caption below it,
+     without either sitting on top of it. */
+  padding: clamp(16px, 4vw, 48px);
+  border: none;
+  background: transparent;
+  /* The gesture the whole overlay offers: wherever you click, it shuts. */
+  cursor: zoom-out;
+  overflow: hidden;
+  animation: room-lightbox-in 180ms ease-out both;
+}
+
+/* Nearly opaque, unlike the welcome mat's curtain. This is here to be looked
+   at, and half the pictures are dark screenshots - a room showing through
+   behind one of those is a second image competing with it. */
+.room-lightbox::backdrop {
+  background: rgba(6, 7, 12, 0.92);
+  backdrop-filter: blur(2px);
+}
+
+.room-lightbox__frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  /* A flex item has to be allowed below its content's own size, or a 2880px
+     photo makes the dialog scroll instead of fitting in it. */
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+}
+
+/*
+  As large as it goes without being cropped or upscaled.
+
+  Capped on both axes rather than given a size, so each picture is limited by
+  whichever of its own dimensions runs out first: a standing infographic by
+  the window's height, a strip chart by its width. next/image writes width and
+  height onto the element, so both are overridden to let the ratio decide.
+
+  The height cap is measured off the viewport rather than written as a
+  percentage of the frame around it. A percentage max-height resolves against
+  the parent's height, the frame's height is its content's, and its content is
+  this picture - so the percentage resolved to nothing and a 1600x1200 photo
+  ran off the bottom of a 750px window with its caption below the fold. The
+  dialog's own padding and the room the caption needs are what is subtracted.
+*/
+.room-lightbox__img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  /* Two lines of caption and the gap above it, which is the most it runs to. */
+  max-height: calc(100dvh - 2 * clamp(16px, 4vw, 48px) - 3rem);
+  object-fit: contain;
+  border: 1px solid rgba(255, 217, 160, 0.16);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.room-lightbox__caption {
+  max-width: 60ch;
+  color: rgba(254, 243, 199, 0.6);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.room-lightbox__close {
+  position: absolute;
+  top: clamp(10px, 2vw, 20px);
+  right: clamp(10px, 2vw, 20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 44px, what a thumb wants. On a phone the picture fills the middle of the
+     screen, so this corner is the one part of the overlay a tap can land on
+     without going through the photo first. */
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 217, 160, 0.25);
+  border-radius: 999px;
+  background: rgba(8, 9, 16, 0.6);
+  color: rgba(254, 243, 199, 0.75);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.room-lightbox__close:hover {
+  background: rgba(255, 217, 160, 0.14);
+  color: #fef3c7;
+}
+
+@keyframes room-lightbox-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-lightbox {
+    animation: none;
+  }
+}
+
+/* ─────────────────────────────────────────────
    The dock.
 
    The resume and the three contact channels, always reachable. Both used to
@@ -914,6 +1048,70 @@
 }
 
 /*
+  The button a picture now sits in - see Zoom in room/ui/Lightbox.tsx.
+
+  Layout-transparent by design: it takes the slot the image used to take and
+  the image fills it, so every rule below that was written about a picture in a
+  gallery or an interlude still lands on the same box. All it adds is the
+  cursor, the cue in the corner, and a focus ring, since this is a control and
+  the keyboard has to be able to see where it is.
+*/
+.reader-zoom {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-inline: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  /* The picture is the whole control, so the ring goes outside it rather than
+     over its edge, where a 1px hairline border already lives. */
+  outline-offset: 2px;
+}
+
+/*
+  The corner glyph that says a picture opens.
+
+  Visible rather than revealed on hover: on a phone there is no hover, and a
+  photo that silently does something when tapped is exactly what Cue exists to
+  stop. Dim enough to read as a mark on the picture, not a badge over it.
+
+  `pointer-events: none` so the glyph is never what a click lands on - it sits
+  over the photo, and the click target is the button underneath all of it.
+*/
+.reader-zoom__cue {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(8, 9, 16, 0.55);
+  color: rgba(254, 243, 199, 0.55);
+  font-size: 12px;
+  line-height: 1;
+  pointer-events: none;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.reader-zoom:hover .reader-zoom__cue,
+.reader-zoom:focus-visible .reader-zoom__cue {
+  background: rgba(8, 9, 16, 0.75);
+  color: rgb(254 243 199 / 0.95);
+}
+
+/* Except on the About portrait, which is 112px of a card with its own rounded
+   corners: a 22px glyph there lands on the chin. The cursor and the focus ring
+   carry that one - the pictures that need the cue are the ones in the body. */
+.reader-zoom--plain .reader-zoom__cue {
+  display: none;
+}
+
+/*
   Gallery or interludes - the same pictures, laid out for the reader's width.
 
   Two-up needs about 600px: two columns of 290, which is as narrow as a
@@ -978,9 +1176,18 @@
   margin-top: 6px;
 }
 
-.reader-gallery .reader-shot {
+/*
+  Whatever is tiled in the masonry: a picture's zoom button, or a placeholder
+  box standing in for a photo that does not exist yet. The direct child is what
+  multi-column lays out, so the packing rules belong on it rather than on the
+  image nested inside.
+*/
+.reader-gallery > * {
   break-inside: avoid;
   margin-bottom: 6px;
+}
+
+.reader-gallery .reader-shot {
   /* Boxed rather than banded. At full bleed a picture's own edges are the
      panel's, so two rules were enough; tiled next to a neighbour it needs the
      other two sides or the gap between images reads as part of the picture. */
@@ -992,9 +1199,16 @@
   A strip chart, given the whole width back. `column-span` closes the columns
   above it and reopens them below, so the masonry packs around it rather than
   leaving a hole - see PANORAMIC in bodies/Shot.tsx for what qualifies.
+
+  The span goes on the tile and the edges on the picture in it, since once a
+  shot is full width its own sides are the panel's again.
 */
 .reader-gallery .reader-shot--wide {
   column-span: all;
+}
+
+.reader-gallery .reader-shot--wide .reader-shot,
+.reader-gallery .reader-shot--wide.reader-shot {
   border-radius: 0;
   border-inline: 0;
 }

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { sizeOf } from "@/constants/imageSizes";
 import { isPlaceholder, type PageImage, type Picture } from "@/constants/pages/types";
+import { Zoom } from "../Lightbox";
 
 /*
   Pictures in the reader.
@@ -47,30 +48,36 @@ export function Shot({
   const native = width < NARROWER_THAN_ANY_COLUMN;
 
   return (
-    <Image
-      src={image.src}
-      alt={image.alt}
-      /*
-        The real pixels, from the measured table. These do not decide the
-        rendered shape - the browser takes that from the file once it arrives -
-        they decide the space held open until it does, which is the difference
-        between a panel that settles and one that lurches.
-      */
-      width={width}
-      height={height}
-      /*
-        What the picture is: the reader is the right 45% of a desktop window
-        and the full width of a phone, and a gallery splits that again. Without
-        this next/image assumes `width` above is the display size and picks a
-        source off that, which for a 2880px photo meant fetching a 2880px photo
-        to draw it 320px wide.
-      */
-      sizes={sizes}
-      className={["reader-shot", native && "reader-shot--native", className]
-        .filter(Boolean)
-        .join(" ")}
-      style={native ? { maxWidth: width } : undefined}
-    />
+    /*
+      Clickable, because in the reader it is never shown at a size you can read
+      it at: the panel is 45% of a window and a gallery column a quarter of
+      that. The wrapper carries the layout - the width cap, and the gallery's
+      own modifiers - so the picture inside it is just a picture that fills
+      whatever it is given. See Lightbox.tsx for what opens.
+    */
+    <Zoom image={image} className={className} style={native ? { maxWidth: width } : undefined}>
+      <Image
+        src={image.src}
+        alt={image.alt}
+        /*
+          The real pixels, from the measured table. These do not decide the
+          rendered shape - the browser takes that from the file once it arrives -
+          they decide the space held open until it does, which is the difference
+          between a panel that settles and one that lurches.
+        */
+        width={width}
+        height={height}
+        /*
+          What the picture is: the reader is the right 45% of a desktop window
+          and the full width of a phone, and a gallery splits that again. Without
+          this next/image assumes `width` above is the display size and picks a
+          source off that, which for a 2880px photo meant fetching a 2880px photo
+          to draw it 320px wide.
+        */
+        sizes={sizes}
+        className={["reader-shot", native && "reader-shot--native"].filter(Boolean).join(" ")}
+      />
+    </Zoom>
   );
 }
 

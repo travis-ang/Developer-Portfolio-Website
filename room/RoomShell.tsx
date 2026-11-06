@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useRoom } from "./engine/roomState";
 import { hasWebGL } from "./fallback/webgl";
+import { LightboxProvider } from "./ui/Lightbox";
 
 /*
   The room's entry point.
@@ -39,20 +40,30 @@ export function RoomShell() {
   return (
     <div className="room-stage fixed inset-0 bg-[#0b0d16]">
       {/*
-        The room mounts and loads its models behind the welcome screen, so
-        entering is instant rather than a second wait - but it is `inert` until
-        then. Without that the six signs are still in the tab ring and still
-        clickable through a backdrop that is only mostly opaque, which is a
-        dialog in appearance only.
+        The picture viewer wraps the room rather than living inside the reader,
+        and that is deliberate: its dialog has to be a sibling of the `inert`
+        div below, not a descendant of it. inert inherits down the tree and the
+        top layer does not rescue a dialog from it, so one rendered inside
+        would open over a room it could not be clicked in - the same reason
+        Welcome sits out here.
       */}
-      <div className="absolute inset-0" inert={!state.entered}>
-        <Room />
-        <Panel />
-        <Hint />
-        {/* The text-version link used to sit loose in this corner; it lives in
-            the dock now, next to the other ways out of the room. */}
-        <Dock />
-      </div>
+      <LightboxProvider>
+        {/*
+          The room mounts and loads its models behind the welcome screen, so
+          entering is instant rather than a second wait - but it is `inert`
+          until then. Without that the six signs are still in the tab ring and
+          still clickable through a backdrop that is only mostly opaque, which
+          is a dialog in appearance only.
+        */}
+        <div className="absolute inset-0" inert={!state.entered}>
+          <Room />
+          <Panel />
+          <Hint />
+          {/* The text-version link used to sit loose in this corner; it lives in
+              the dock now, next to the other ways out of the room. */}
+          <Dock />
+        </div>
+      </LightboxProvider>
       <Welcome />
     </div>
   );

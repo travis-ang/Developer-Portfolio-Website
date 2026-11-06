@@ -132,7 +132,17 @@ export function CameraRig() {
       is for - the panel's own back button is what steps one level.
     */
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
+      if (e.key !== "Escape") return;
+      /*
+        Unless something is open on top of the reader, in which case Escape is
+        that thing's to answer. A modal <dialog> handles the key itself and the
+        keydown still reaches this listener on its way up, so opening a photo
+        from a panel and pressing Escape closed the photo AND threw away the
+        page it was on. The reader is what Escape leaves once nothing is over
+        it - see Lightbox.tsx and Welcome.tsx for the dialogs this defers to.
+      */
+      if (document.querySelector("dialog[open]")) return;
+      close();
     };
 
     window.addEventListener("pointerdown", onDown);
