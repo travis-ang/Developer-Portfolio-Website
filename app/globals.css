@@ -750,6 +750,16 @@
   animation: room-lightbox-in 180ms ease-out both;
 }
 
+/* Closed, it is gone. The UA hides a dialog that is not open with
+   `display: none`, and the `display: flex` above outranks that - harmless on
+   the welcome mat, which unmounts once dismissed, but this dialog stays in the
+   tree for the whole visit. Left visible it was a transparent sheet over the
+   entire room, wearing the zoom-out cursor and eating every click meant for
+   the signs, the reader and the dock. */
+.room-lightbox:not([open]) {
+  display: none;
+}
+
 /* Nearly opaque, unlike the welcome mat's curtain. This is here to be looked
    at, and half the pictures are dark screenshots - a room showing through
    behind one of those is a second image competing with it. */
